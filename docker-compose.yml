@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+
+  api:
+    container_name: amc-api
+    image: amc-api-dev
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: Dockerfile-local
+    ports:
+      - 3500:3500
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    env_file:
+      - .env      
+    depends_on:
+      - db
+    networks:
+      - amc-api-network
+
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: amc-api-postgres
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - ./psql-data:/var/lib/postgresql/data:delegated
+    networks:
+      - amc-api-network      
+    ports:
+      - "5432:5432"
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: amc_pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: veerendratest45@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin@123
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - amc-api-network  
+
+volumes:
+  psql-data:
+  pgadmin-data:
+
+networks:
+  amc-api-network:
+    name: amc-api-network
